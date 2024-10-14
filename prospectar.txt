@@ -1,0 +1,55 @@
+import requests
+import tkinter as tk
+from tkinter import messagebox
+from tkinter import scrolledtext
+
+API_KEY = 'AIzaSyARe82Ghcu-eA6mGq4JGUUjw41j-lYWqm8'  # Sua chave de API
+
+class App:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Prospectar Clientes")
+        self.root.geometry("600x400")
+        self.root.configure(bg="#f0f0f0")
+
+        title = tk.Label(root, text="Prospectar Clientes", font=("Arial", 24), bg="#f0f0f0")
+        title.pack(pady=20)
+
+        self.city_entry = tk.Entry(root, font=("Arial", 16), width=20)
+        self.city_entry.pack(pady=10)
+        self.city_entry.insert(0, "Digite a cidade...")
+
+        search_button = tk.Button(root, text="Buscar Clientes", command=self.buscar_clientes, font=("Arial", 16), bg="#4CAF50", fg="white")
+        search_button.pack(pady=20)
+
+        self.results_text = scrolledtext.ScrolledText(root, wrap=tk.WORD, font=("Arial", 12), width=50, height=10)
+        self.results_text.pack(pady=10)
+
+    def buscar_clientes(self):
+        cidade = self.city_entry.get()
+        if not cidade.strip():
+            messagebox.showwarning("Atenção", "Por favor, insira uma cidade.")
+            return
+
+        url = f"https://maps.googleapis.com/maps/api/place/textsearch/json?query=empresas+em+{cidade}&key={API_KEY}"
+        try:
+            response = requests.get(url)
+            results = response.json().get('results', [])
+
+            self.results_text.delete(1.0, tk.END)
+            if not results:
+                self.results_text.insert(tk.END, "Nenhum resultado encontrado.")
+                return
+
+            for lugar in results:
+                nome = lugar.get('name')
+                endereco = lugar.get('formatted_address')
+                self.results_text.insert(tk.END, f"Nome: {nome}, Endereço: {endereco}\n")
+
+        except Exception as e:
+            messagebox.showerror("Erro", f"Ocorreu um erro: {str(e)}")
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = App(root)
+    root.mainloop()
